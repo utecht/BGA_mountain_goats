@@ -143,96 +143,150 @@ class MountainGoats extends Table
 //////////// Utility functions
 ////////////    
 
+    function checkMoves($moves){
+        $legal_moves = array();
+        for($i = 0; $i < count($moves); $i++){
+            $legal_move = array();
+            for($s = 0; $s < count($moves[$i]); $s++){
+                $val = $moves[$i][$s];
+                if($val >= 5 && $val <= 10){
+                    $legal_move[] = $val;
+                } 
+            }
+            if(count($legal_move) > 0) $legal_moves[] = join(',', $legal_move);
+        }
+        return array_unique($legal_moves);
+    }
+
     /*
         In this space, you can put any utility methods useful for your game logic
     */
+    function allMoves( $dice ) {
+        // returns currently legal moves
+        $result = array();
 
+        //pick one
+        if(count($dice) == 1){
+            $result[] = [array_sum($dice)];
+        } else {
+            for($d = 0; $d < count($dice); $d++){
+                $picked = $dice[$d];
+                $remaining = array_values(array_diff_key($dice, [$d]));
+                $more = self::allMoves($remaining);
+                for($i = 0; $i < count($more); $i++){
+                    $result[] = array_merge([$picked], $more[$i]);
+                }
+            }
+        }
+
+        //pick two
+        if(count($dice) == 2){
+            $result[] = [array_sum($dice)];
+        } elseif (count($dice) > 2) {
+            for($d1= 0; $d1 < count($dice); $d1++){
+                for($d2= 0; $d2 < count($dice); $d2++){
+                    if($d1 != $d2){
+                        $picked = $dice[$d1] + $dice[$d2];
+                        $remaining = array_values(array_diff_key($dice, [$d1, $d2]));
+                        $more = self::allMoves($remaining);
+                        for($i = 0; $i < count($more); $i++){
+                            $result[] = array_merge([$picked], $more[$i]);
+                        }
+                    }
+                }
+            }
+        }
+
+        //pick three
+        if(count($dice) == 3){
+            $result[] = [array_sum($dice)];
+        } elseif (count($dice) > 3) {
+            for($d1= 0; $d1 < count($dice); $d1++){
+                for($d2= 0; $d2 < count($dice); $d2++){
+                    for($d3= 0; $d3 < count($dice); $d3++){
+                        if($d1 != $d2 && $d1 != $d3 && $d2 != $d3){
+                            $picked = $dice[$d1] + $dice[$d2] + $dice[$d3];
+                            $remaining = array_values(array_diff_key($dice, [$d1, $d2, $d3]));
+                            $more = self::allMoves($remaining);
+                            for($i = 0; $i < count($more); $i++){
+                                $result[] = array_merge([$picked], $more[$i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //pick four
+        if(count($dice) == 4){
+            $result[] = [array_sum($dice)];
+        }
+
+        // All single die combos
+
+        return $result;
+    }
+
+    function legalMoves($dice){
+        $allMoves = self::allMoves($dice);
+        $legalMoves = self::checkMoves($allMoves);
+        return $legalMoves;
+    }
 
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 //////////// 
 
-    /*
-        Each time a player is doing some game action, one of the methods below is called.
-        (note: each method below must match an input method in mountaingoats.action.php)
-    */
+    function moveGoats( $goats ) {
+        // check if move is legal
 
-    /*
-    
-    Example:
+        // move goat up each track
 
-    function playCard( $card_id )
-    {
-        // Check that this is the player's turn and that it is a "possible action" at this game state (see states.inc.php)
-        self::checkAction( 'playCard' ); 
-        
-        $player_id = self::getActivePlayerId();
-        
-        // Add your game logic to play a card there 
-        ...
-        
-        // Notify all players about the card played
-        self::notifyAllPlayers( "cardPlayed", clienttranslate( '${player_name} plays ${card_name}' ), array(
-            'player_id' => $player_id,
-            'player_name' => self::getActivePlayerName(),
-            'card_name' => $card_name,
-            'card_id' => $card_id
-        ) );
-          
+        // award point tokens
+
+        // knock opponent goats down
+
+        // move to next turn
+        $this->gamestate->nextState('moveGoats');
     }
-    
-    */
+
+    function changeDice() {
+        // check if dice were legally changed
+
+        // change dice
+
+        $this->gamestate->nextState('changeDice');
+    }
 
     
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state arguments
 ////////////
 
-    /*
-        Here, you can create methods defined as "game state arguments" (see "args" property in states.inc.php).
-        These methods function is to return some additional information that is specific to the current
-        game state.
-    */
-
-    /*
-    
-    Example for game state "MyGameState":
-    
-    function argMyGameState()
-    {
-        // Get some values from the current game situation in database...
-    
-        // return values:
-        return array(
-            'variable1' => $value1,
-            'variable2' => $value2,
-            ...
-        );
-    }    
-    */
+    function argPlayerTurn() {
+        // return the current dice
+        $dice = array( 5, 4, 3, 6 );
+        return array( 'dice' => $dice,
+                      'moves' => self::legalMoves($dice) );
+    }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state actions
 ////////////
 
-    /*
-        Here, you can create methods defined as "game state actions" (see "action" property in states.inc.php).
-        The action method of state X is called everytime the current game state is set to X.
-    */
-    
-    /*
-    
-    Example for game state "MyGameState":
+    function stGameTurn() {
+        // check if the game is over
+        $this->gamestate->nextState('endGame');
 
-    function stMyGameState()
-    {
-        // Do some stuff ...
-        
-        // (very often) go to another gamestate
-        $this->gamestate->nextState( 'some_gamestate_transition' );
-    }    
-    */
+        // roll dice
+
+        // set next player active
+        $player_id = self::activeNextPlayer();
+        $this->gamestate->nextState('nextPlayer');
+
+    }
+
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Zombie
