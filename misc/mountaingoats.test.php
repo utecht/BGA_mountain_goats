@@ -23,13 +23,13 @@ $x = new MountainGoatsTest();
 //$a = $x->argPlayerTurn();
 //var_dump($a);
 
-$r = $x->legalMoves(array(5, 2, 3, 4));
+$r = $x->legalMoves(array(5, 1, 2, 3));
 var_dump($r);
 if (in_array('8', $r, true)) echo "Test All 4: PASSED\n";
 else echo "Test All 4: FAILED\n";
 
-if (in_array('66', $r, true)) echo "Test Pair: PASSED\n";
+if (in_array('5,5', $r, true)) echo "Test Pair: PASSED\n";
 else echo "Test Pair: FAILED\n";
 
-if (in_array('6', $r, true)) echo "Test triple: PASSED\n";
+if (in_array('10', $r, true)) echo "Test triple: PASSED\n";
 else echo "Test triple: FAILED\n";
