@@ -68,5 +68,44 @@
 */
 
 
+.board_tile {
+    height: 120px;
+    width: 120px;
+    position: absolute;
+    background-image: url('img/board.jpg');
+}
+
+#board_5_0 { background-position: 0px 0px; }
+#board_5_1 { background-position: 0px -120px; }
+#board_5_2 { background-position: 0px -240px; }
+#board_5_3 { background-position: 0px -360px; }
+
+#board_6_0 { background-position: -120px 0px; }
+#board_6_1 { background-position: -120px -120px; }
+#board_6_2 { background-position: -120px -240px; }
+#board_6_3 { background-position: -120px -360px; }
+
+#board_7_0 { background-position: -240px 0px; }
+#board_7_1 { background-position: -240px -120px; }
+#board_7_2 { background-position: -240px -240px; }
+
+#board_8_0 { background-position: -360px 0px; }
+#board_8_1 { background-position: -360px -120px; }
+#board_8_2 { background-position: -360px -240px; }
+
+#board_9_0 { background-position: -480px 0px; }
+#board_9_1 { background-position: -480px -120px; }
+
+#board_10_0 { background-position: -600px 0px; }
+#board_10_1 { background-position: -600px -120px; }
+
+.possibleMove {
+    background-color: white;
+    opacity: 0.2;
+    filter: alpha(opacity=20);
+    cursor: pointer;
+}
+
+
 
 
