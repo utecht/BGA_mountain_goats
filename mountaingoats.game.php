@@ -238,7 +238,7 @@ class MountainGoats extends Table
 //////////// Player actions
 //////////// 
 
-    function moveGoats( $goats ) {
+    function moveGoats( $moves ) {
         // check if move is legal
 
         // move goat up each track

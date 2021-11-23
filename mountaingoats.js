@@ -88,6 +88,12 @@ function (dojo, declare) {
                 
                 break;
            */
+           case 'playerTurn':
+                console.log(args.args.moves);
+                this.gamedatas.moves = args.args.moves.split(',');
+                this.gamedatas.previousMoves = [];
+                this.initialPossibleMoves(this.gamestate.moves);
+                break;
            
            
             case 'dummmy':
@@ -151,12 +157,44 @@ function (dojo, declare) {
         ///////////////////////////////////////////////////
         //// Utility methods
         
-        /*
-        
-            Here, you can defines some utility methods that you can use everywhere in your javascript
-            script.
-        
-        */
+        initialPossibleMoves: function(moves){
+            dojo.query('.possibleMove').removeClass('possibleMove');
+
+            for(var moveSet in moves){
+                for(var i in moves[moveSet]){
+                   let x = moves[moveSet][i]; 
+                   dojo.addClass('board_'+x+'_0', 'possibleMove'); 
+                }
+            }
+
+            this.addTooltipToClass('possibleMove', '', _('Move goat here') );
+        }
+
+        updatePossibleMoves: function(moves, moveX){
+            dojo.query('.possibleMove').removeClass('possibleMove');
+
+            for(var moveSet in moves){
+                var moveSet = moves[moveSet];
+                // remove all previous moves from the moveset
+                for(var p in this.gamedatas.previousMoves){
+                    let pi = moveSet.indexOf(this.gamedatas.previousMoves(p));
+                    if(pi > -1){
+                        moveSet.splice(pi, 1);
+                    }
+                }
+                let index = moveSet.indexOf(moveX);
+                if(index > -1){
+                    moveSet.splice(index, 1);
+                    for(var i in moveSet){
+                       let x = moveSet[i]; 
+                       dojo.addClass('board_'+x+'_0', 'possibleMove'); 
+                    }
+                }
+            }
+
+            this.addTooltipToClass('possibleMove', '', _('Move goat here') );
+
+        }
 
 
         ///////////////////////////////////////////////////
@@ -172,40 +210,49 @@ function (dojo, declare) {
             _ make a call to the game server
         
         */
+
+        onMoveGoat: function(evt){
+            evt.preventDefault();
+            dojo.stopEvent(evt);
+
+            let coords = evt.currentTarget.id.split('_');
+            let x = coords[1];
+            let y = coords[2];
+
+            if(! dojo.hasClass('board_'+x+'_0', 'possibleMove')){
+                // not a currently legal move
+                return;
+            }
+            // check if move is in legal moves, and if there are any additional
+            let moves = this.gamestate.moves;
+            for(var moveSet in moves){
+                var moveSet = moves[moveSet];
+                // remove all previous moves from the moveset
+                for(var p in this.gamestate.previousMoves){
+                    let pi = moveSet.indexOf(this.gamedatas.previousMoves(p));
+                    if(pi > -1){
+                        moveSet.splice(pi, 1);
+                    }
+                }
+                let index = moveSet.indexOf(x);
+                if(index > -1){
+                    moveSet.splice(index, 1);
+                    if(moveSet.length > 0){
+                        this.updatePossibleMoves(this.gamedatas.moves, x);
+                        this.gamedatas.previousMoves.push(x);
+                        return;
+                    }
+                }
+            }
+            // no moves remain 
+            this.gamedatas.previousMoves.push(x);
+            if(this.checkAction('moveGoat')){
+                this.ajaxcall('/mountaingoats/mountaingoats/moveGoat.html', {
+                    moves:this.gamedatas.previousMoves.join(',')
+                }, this, function(result) {} );
+            }
+        }
         
-        /* Example:
-        
-        onMyMethodToCall1: function( evt )
-        {
-            console.log( 'onMyMethodToCall1' );
-            
-            // Preventing default browser reaction
-            dojo.stopEvent( evt );
-
-            // Check that this action is possible (see "possibleactions" in states.inc.php)
-            if( ! this.checkAction( 'myAction' ) )
-            {   return; }
-
-            this.ajaxcall( "/mountaingoats/mountaingoats/myAction.html", { 
-                                                                    lock: true, 
-                                                                    myArgument1: arg1, 
-                                                                    myArgument2: arg2,
-                                                                    ...
-                                                                 }, 
-                         this, function( result ) {
-                            
-                            // What to do after the server call if it succeeded
-                            // (most of the time: nothing)
-                            
-                         }, function( is_error) {
-
-                            // What to do after the server call in anyway (success or failure)
-                            // (most of the time: nothing)
-
-                         } );        
-        },        
-        
-        */
 
         
         ///////////////////////////////////////////////////
