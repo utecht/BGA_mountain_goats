@@ -1,7 +1,7 @@
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * MountainGoats implementation : © <Your name here> <Your email address here>
+ * MountainGoats implementation : © Joseph Utecht <joseph@utecht.co>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -24,25 +24,6 @@ function (dojo, declare) {
     return declare("bgagame.mountaingoats", ebg.core.gamegui, {
         constructor: function(){
             console.log('mountaingoats constructor');
-              
-            // Here, you can init the global variables of your user interface
-            // Example:
-            // this.myGlobalValue = 0;
-
-        },
-        
-        /*
-            setup:
-            
-            This method must set up the game user interface according to current game situation specified
-            in parameters.
-            
-            The method is called each time the game interface is displayed to a player, ie:
-            _ when the game starts
-            _ when a player refreshes the game page (F5)
-            
-            "gamedatas" argument contains all datas retrieved by your "getAllDatas" PHP method.
-        */
         
         setup: function( gamedatas )
         {
@@ -79,15 +60,6 @@ function (dojo, declare) {
             switch( stateName )
             {
             
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Show some HTML block at this game state
-                dojo.style( 'my_html_block_id', 'display', 'block' );
-                
-                break;
-           */
            case 'playerTurn':
                 console.log(args.args.moves);
                 this.gamedatas.moves = args.args.moves.split(',');
@@ -111,16 +83,6 @@ function (dojo, declare) {
             switch( stateName )
             {
             
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Hide the HTML block we are displaying only during this game state
-                dojo.style( 'my_html_block_id', 'display', 'none' );
-                
-                break;
-           */
-           
            
             case 'dummmy':
                 break;
@@ -150,6 +112,7 @@ function (dojo, declare) {
                     this.addActionButton( 'button_3_id', _('Button 3 label'), 'onMyMethodToCall3' ); 
                     break;
 */
+                // TODO: Add cancel action button during movement
                 }
             }
         },        
@@ -200,17 +163,6 @@ function (dojo, declare) {
         ///////////////////////////////////////////////////
         //// Player's action
         
-        /*
-        
-            Here, you are defining methods to handle player's action (ex: results of mouse click on 
-            game objects).
-            
-            Most of the time, these methods:
-            _ check the action is possible at this game state.
-            _ make a call to the game server
-        
-        */
-
         onMoveGoat: function(evt){
             evt.preventDefault();
             dojo.stopEvent(evt);
@@ -258,15 +210,6 @@ function (dojo, declare) {
         ///////////////////////////////////////////////////
         //// Reaction to cometD notifications
 
-        /*
-            setupNotifications:
-            
-            In this method, you associate each of your game notifications with your local method to handle it.
-            
-            Note: game notification names correspond to "notifyAllPlayers" and "notifyPlayer" calls in
-                  your mountaingoats.game.php file.
-        
-        */
         setupNotifications: function()
         {
             console.log( 'notifications subscriptions setup' );
