@@ -19,7 +19,7 @@ $gameinfos = array(
 'designer' => 'Stefan Risthaus',       
 
 // Game artist (or game artists, separated by commas)
-'artist' => 'Anca Gavril', 'Daniel Profiri',
+'artist' => 'Anca Gavril, Daniel Profiri',
 
 // Year of FIRST publication of this game. Can be negative.
 'year' => 2020,                 
