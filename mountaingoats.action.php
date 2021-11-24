@@ -46,6 +46,14 @@
         self::ajaxResponse();
     }
 
+    public function changeDie(){
+        self::setAjaxMode();
+        $dieIndex = self::getArg("dieIndex", AT_posint, false);
+        $newValue = self::getArg("newValue", AT_posint, false);
+        $this->game->changeDie($dieIndex, $newValue);
+        self::ajaxResponse();
+    }
+
 
   }
   

@@ -48,8 +48,8 @@ $machinestates = array(
     		"descriptionmyturn" => clienttranslate('${you} must move a goat'),
     		"type" => "activeplayer",
             "args" => "argPlayerTurn",
-    		"possibleactions" => array( "moveGoats", "changeDice" ),
-    		"transitions" => array( "moveGoats" => STATE_GAME_TURN, "changeDice" => STATE_PLAYER_TURN )
+    		"possibleactions" => array( "moveGoats", "changeDie" ),
+    		"transitions" => array( "moveGoats" => STATE_GAME_TURN, "changeDie" => STATE_PLAYER_TURN )
     ),
    
     // Final state.

@@ -204,7 +204,21 @@ function (dojo, declare) {
                 }, this, function(result) {} );
             }
         }
-        
+
+        onChangeDie: function(evt){
+            evt.preventDefault();
+            dojo.stopEvent(evt);
+
+            let dieIndex = 0;
+            let newValue = 5;
+            if(this.checkAction('changeDie')){
+                this.ajaxcall('/mountaingoats/mountaingoats/changeDie.html', {
+                    dieIndex:dieIndex,
+                    newValue:newValue
+                }, this, function(result) {} );
+            }
+        }
+
 
         
         ///////////////////////////////////////////////////

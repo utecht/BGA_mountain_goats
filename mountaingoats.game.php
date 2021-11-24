@@ -251,12 +251,12 @@ class MountainGoats extends Table
         $this->gamestate->nextState('moveGoats');
     }
 
-    function changeDice() {
+    function changeDie($dieIndex, $newValue) {
         // check if dice were legally changed
 
         // change dice
 
-        $this->gamestate->nextState('changeDice');
+        $this->gamestate->nextState('changeDie');
     }
 
     
