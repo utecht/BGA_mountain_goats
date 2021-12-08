@@ -118,10 +118,10 @@ class MountainGoats extends Table{
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-        $results['goats'] = self::getCollectionFromDb("select * from goat");
-        $results['dice'] = self::getCollectionFromDb("select * from dice");
-        $results['tokens'] = self::getCollectionFromDb("select * from token");
-        $results['my_id'] = $current_player_id;
+        $result['goats'] = self::getObjectListFromDb("select * from goat");
+        $result['dice'] = self::getObjectListFromDb("select * from dice");
+        $result['tokens'] = self::getObjectListFromDb("select * from token");
+        $result['my_id'] = $current_player_id;
 
         return $result;
     }

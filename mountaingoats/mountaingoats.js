@@ -35,10 +35,28 @@ function (dojo, declare) {
                          
             }
  
+            for(let goat of gamedatas.goats ){
+                for(let i = 5; i <= 10; i++){
+                    let target_div = 'goat_start_'+i;
+                    let goat_name = 'goat_'+i;
+                    if(goat[goat_name] !== null){
+                        target_div = 'board_'+i+'_'+goat[goat_name];
+                    }
+                    dojo.place(this.format_block('jstpl_goat', {
+                        owner: goat.owner,
+                        goat_num: i,
+                        color: gamedatas.players[goat.owner].color
+                    }), target_div);
+                    if(goat.owner == this.player_id){
+                        this.goat = goat;
+                    }
+                }
+            }
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
-            dojo.query('.board_tile').connect('onclick', this, 'onMoveGoat');
+            dojo.query('.goat').connect('onclick', this, 'onMoveGoat');
 
             console.log( "Ending game setup" );
         },
@@ -111,14 +129,54 @@ function (dojo, declare) {
         
         initialPossibleMoves: function(moves){
             dojo.query('.possibleMove').removeClass('possibleMove');
+            if(this.isCurrentPlayerActive()){
+                for(var moveSet in moves){
+                    for(var x of moves[moveSet]){
+                       dojo.addClass('player_'+this.player_id+'_goat_'+x, 'possibleMove'); 
+                    }
+                }
 
-            for(var moveSet in moves){
-                for(var x of moves[moveSet]){
-                   dojo.addClass('board_'+x+'_0', 'possibleMove'); 
+                this.addTooltipToClass('possibleMove', '', _('Move goat here') );
+            }
+        },
+
+        moveOwnGoat: function(goat_num){
+            let goat_name = 'goat_'+goat_num;
+            if(this.goat[goat_name] === null){
+                switch(parseInt(goat_num)){
+                    case 5:
+                        this.goat[goat_name] = 3;
+                        break;
+                    case 6:
+                        this.goat[goat_name] = 3;
+                        break;
+                    case 7:
+                        this.goat[goat_name] = 2;
+                        break;
+                    case 8:
+                        this.goat[goat_name] = 2;
+                        break;
+                    case 9:
+                        this.goat[goat_name] = 1;
+                        break;
+                    case 10:
+                        this.goat[goat_name] = 1;
+                        break;
+                }
+            } else {
+                if(this.goat[goat_name] > 0){
+                    this.goat[goat_name]--;
                 }
             }
+            this.slideGoat(this.goat, goat_num);
+        },
 
-            this.addTooltipToClass('possibleMove', '', _('Move goat here') );
+        slideGoat: function(goat, goat_num){
+            let goat_name = 'goat_'+goat_num;
+            this.attachToNewParent('player_'+goat.owner+'_goat_'+goat_num, 'board_'+goat_num+'_'+goat[goat_name]);
+            dojo.query('#player_'+goat.owner+'_goat_'+goat_num).connect('onclick', this, 'onMoveGoat');
+            //this.placeOnObject('player_'+goat.owner+'_goat_'+goat_num, 'board_'+goat_num+'_'+goat[goat_name]);
+            //this.slideToObject('player_'+goat.owner+'_goat_'+goat_num, 'board_'+goat_num+'_'+goat[goat_name]).play();
         },
 
         updatePossibleMoves: function(moveX){
@@ -144,7 +202,7 @@ function (dojo, declare) {
                         moveSet.splice(index, 1);
                         for(var i in moveSet){
                            let x = moveSet[i]; 
-                           dojo.addClass('board_'+x+'_0', 'possibleMove'); 
+                           dojo.addClass('player_'+this.player_id+'_goat_'+x, 'possibleMove'); 
                         }
                     }
                 }
@@ -163,10 +221,10 @@ function (dojo, declare) {
             dojo.stopEvent(evt);
 
             let coords = evt.currentTarget.id.split('_');
-            let x = coords[1];
-            let y = coords[2];
+            let owner = coords[1];
+            let x = coords[3];
 
-            if(! dojo.hasClass('board_'+x+'_0', 'possibleMove')){
+            if(! dojo.hasClass(evt.currentTarget.id, 'possibleMove')){
                 // not a currently legal move
                 return;
             }
@@ -192,6 +250,7 @@ function (dojo, declare) {
                         if(moveSet.length > 0){
                             this.updatePossibleMoves(x);
                             this.gamedatas.previousMoves.push(x);
+                            this.moveOwnGoat(x);
                             return;
                         }
                     }
@@ -199,6 +258,7 @@ function (dojo, declare) {
             }
             // no moves remain 
             this.gamedatas.previousMoves.push(x);
+            this.moveOwnGoat(x);
             if(this.checkAction('moveGoat')){
                 this.ajaxcall('/mountaingoats/mountaingoats/moveGoat.html', {
                     moves:this.gamedatas.previousMoves.join(',')

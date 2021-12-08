@@ -19,6 +19,7 @@
     background-repeat: no-repeat;
     background-image: url('img/board.jpg');
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-evenly;
     align-items: center;
 }
@@ -54,9 +55,7 @@
 #board_10_1 { background-position: -600px -120px; grid-area: 3 / 6 / 4 / 7; }
 
 .possibleMove {
-    background-color: white;
-    opacity: 0.2;
-    filter: alpha(opacity=20);
+    border: 2px blue solid;
     cursor: pointer;
 }
 
@@ -76,20 +75,21 @@
 .die_6 { background-position: -250px 0px; }
 
 .point_token {
-    height: 100px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     background-image: url('img/point_tokens.png');
     background-repeat: no-repeat;
     justify-self: center;
     align-self: center;
+    background-size: 300px 50px;
 }
 
 .point_token_5 { background-position: 0px 0px; }
-.point_token_6 { background-position: -100px 0px; }
-.point_token_7 { background-position: -200px 0px; }
-.point_token_8 { background-position: -300px 0px; }
-.point_token_9 { background-position: -400px 0px; }
-.point_token_10 { background-position: -500px 0px; }
+.point_token_6 { background-position: -50px 0px; }
+.point_token_7 { background-position: -100px 0px; }
+.point_token_8 { background-position: -150px 0px; }
+.point_token_9 { background-position: -200px 0px; }
+.point_token_10 { background-position: -250px 0px; }
 
 .bonus_token {
     width: 200px;
@@ -104,14 +104,29 @@
 .bonus_token_15 { background-position: -200px -125px; }
 
 .goat {
-    width: 100px;
-    height: 100px;
-    background-image: url('img/goat.png');
-    background-repeat: no-repeat;
+    width: 40px;
+    height: 40px;
+    background-blend-mode: multiply;
+    mask: url('img/goat.png');
+    -webkit-mask: url('img/goat.png');
+    mask-size: 40px 40px;
+    mask-repeat: no-repeat;
+}
+
+.goat_start {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
 }
 
 .dice_area {
     display: flex;
     justify-content: space-evenly;
+}
+
+#my_play_area {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
