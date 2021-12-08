@@ -17,6 +17,10 @@ class MountainGoatsTest extends MountainGoats {
         return 0;
     }
 }
+$dice = array(5, 1, 2, 3);
+$d = 1;
+$remaining = array_values(array_diff_key($dice, [$d=>0]));
+var_dump($remaining);
 
 $x = new MountainGoatsTest();
 
@@ -24,7 +28,6 @@ $x = new MountainGoatsTest();
 //var_dump($a);
 
 $r = $x->legalMoves(array(5, 1, 2, 3));
-var_dump($r);
 if (in_array('8', $r, true)) echo "Test All 4: PASSED\n";
 else echo "Test All 4: FAILED\n";
 
@@ -33,3 +36,11 @@ else echo "Test Pair: FAILED\n";
 
 if (in_array('10', $r, true)) echo "Test triple: PASSED\n";
 else echo "Test triple: FAILED\n";
+
+if (!in_array('8,5', $r, true)) echo "Test re-use: PASSED\n";
+else echo "Test re-use: FAILED\n";
+
+$r = $x->legalMoves(array(3, 1, 1, 5));
+var_dump($r);
+if (in_array('5,5', $r, true)) echo "Test another: PASSED\n";
+else echo "Test another: FAILED\n";

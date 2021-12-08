@@ -39,17 +39,17 @@ $machinestates = array(
         "type" => "game",
         "action" => "stGameTurn",
         "updateGameProgression" => true,
-        "transitions" => ( "endGame" => STATE_END_GAME, "nextPlayer" => STATE_PLAYER_TURN )
+        "transitions" => array( "endGame" => STATE_END_GAME, "nextPlayer" => STATE_PLAYER_TURN )
     ),
     
     STATE_PLAYER_TURN => array(
-    		"name" => "playerTurn",
-    		"description" => clienttranslate('${actplayer} must move a goat'),
-    		"descriptionmyturn" => clienttranslate('${you} must move a goat'),
-    		"type" => "activeplayer",
-            "args" => "argPlayerTurn",
-    		"possibleactions" => array( "moveGoats", "changeDie" ),
-    		"transitions" => array( "moveGoats" => STATE_GAME_TURN, "changeDie" => STATE_PLAYER_TURN )
+		"name" => "playerTurn",
+		"description" => clienttranslate('${actplayer} must move a goat'),
+		"descriptionmyturn" => clienttranslate('${you} must move a goat'),
+		"type" => "activeplayer",
+        "args" => "argPlayerTurn",
+		"possibleactions" => array( "moveGoat", "changeDie" ),
+		"transitions" => array( "moveGoat" => STATE_GAME_TURN, "changeDie" => STATE_PLAYER_TURN )
     ),
    
     // Final state.

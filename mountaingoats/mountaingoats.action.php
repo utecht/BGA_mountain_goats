@@ -42,7 +42,7 @@
     public function moveGoat(){
         self::setAjaxMode();
         $moves = self::getArg("moves", AT_numberlist, false);
-        $result = $this->game->moveGoat($moves);
+        $this->game->moveGoat($moves);
         self::ajaxResponse();
     }
 

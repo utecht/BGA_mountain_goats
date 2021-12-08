@@ -20,10 +20,8 @@
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 
-class MountainGoats extends Table
-{
-	function __construct( )
-	{
+class MountainGoats extends Table{
+	function __construct( ){
         // Your global variables labels:
         //  Here, you can assign labels to global variables you are using for this game.
         //  You can use any number of global variables with IDs between 10 and 99.
@@ -42,21 +40,12 @@ class MountainGoats extends Table
         ) );        
 	}
 	
-    protected function getGameName( )
-    {
+    protected function getGameName( ){
 		// Used for translations and stuff. Please do not modify.
         return "mountaingoats";
     }	
 
-    /*
-        setupNewGame:
-        
-        This method is called only once, when a new game is launched.
-        In this method, you must setup the game according to the game rules, so that
-        the game is ready to be played.
-    */
-    protected function setupNewGame( $players, $options = array() )
-    {    
+    protected function setupNewGame( $players, $options = array() ){    
         // Set the colors of the players with HTML color code
         // The default below is red/green/blue/orange/brown
         // The number of colors defined here must correspond to the maximum number of players allowed for the gams
@@ -67,8 +56,8 @@ class MountainGoats extends Table
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialize it there.
         $sql = "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES ";
         $values = array();
-        foreach( $players as $player_id => $player )
-        {
+        foreach( $players as $player_id => $player ){
+            self::DbQuery("insert into goat (owner) values ('".$player_id."')");
             $color = array_shift( $default_colors );
             $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
         }
@@ -76,7 +65,22 @@ class MountainGoats extends Table
         self::DbQuery( $sql );
         self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
         self::reloadPlayersBasicInfos();
-        
+
+        self::DbQuery("insert into dice (id) values (0),(1),(2),(3)");
+        $sql = "insert into token (kind) values ";
+        $tokens = array();
+        foreach($this->point_tokens as $point_token){
+            $count = $point_token['count'];
+            $tokens = array_merge($tokens, array_fill(0, $count, "('point_token_".$point_token['id']."')"));
+        }
+        $tokens[] = "('bonus_token_15')";
+        $tokens[] = "('bonus_token_12')";
+        $tokens[] = "('bonus_token_9')";
+        $tokens[] = "('bonus_token_6')";
+        $sql .= implode($tokens, ',');
+        self::DbQuery($sql);
+
+
         /************ Start the game initialization *****/
 
         // Init global values with their initial values
@@ -105,8 +109,7 @@ class MountainGoats extends Table
         _ when the game starts
         _ when a player refreshes the game page (F5)
     */
-    protected function getAllDatas()
-    {
+    protected function getAllDatas(){
         $result = array();
     
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
@@ -115,9 +118,11 @@ class MountainGoats extends Table
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-  
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
-  
+        $results['goats'] = self::getCollectionFromDb("select * from goat");
+        $results['dice'] = self::getCollectionFromDb("select * from dice");
+        $results['tokens'] = self::getCollectionFromDb("select * from token");
+        $results['my_id'] = $current_player_id;
+
         return $result;
     }
 
@@ -131,8 +136,7 @@ class MountainGoats extends Table
         This method is called each time we are in a game state with the "updateGameProgression" property set to true 
         (see states.inc.php)
     */
-    function getGameProgression()
-    {
+    function getGameProgression(){
         // TODO: compute and return the game progression
 
         return 0;
@@ -171,7 +175,7 @@ class MountainGoats extends Table
         } else {
             for($d = 0; $d < count($dice); $d++){
                 $picked = $dice[$d];
-                $remaining = array_values(array_diff_key($dice, [$d]));
+                $remaining = array_values(array_diff_key($dice, [$d=>0]));
                 $more = self::allMoves($remaining);
                 for($i = 0; $i < count($more); $i++){
                     $result[] = array_merge([$picked], $more[$i]);
@@ -187,7 +191,7 @@ class MountainGoats extends Table
                 for($d2= 0; $d2 < count($dice); $d2++){
                     if($d1 != $d2){
                         $picked = $dice[$d1] + $dice[$d2];
-                        $remaining = array_values(array_diff_key($dice, [$d1, $d2]));
+                        $remaining = array_values(array_diff_key($dice, [$d1=>0, $d2=>0]));
                         $more = self::allMoves($remaining);
                         for($i = 0; $i < count($more); $i++){
                             $result[] = array_merge([$picked], $more[$i]);
@@ -206,7 +210,7 @@ class MountainGoats extends Table
                     for($d3= 0; $d3 < count($dice); $d3++){
                         if($d1 != $d2 && $d1 != $d3 && $d2 != $d3){
                             $picked = $dice[$d1] + $dice[$d2] + $dice[$d3];
-                            $remaining = array_values(array_diff_key($dice, [$d1, $d2, $d3]));
+                            $remaining = array_values(array_diff_key($dice, [$d1=>0, $d2=>0, $d3=>0]));
                             $more = self::allMoves($remaining);
                             for($i = 0; $i < count($more); $i++){
                                 $result[] = array_merge([$picked], $more[$i]);
@@ -238,7 +242,7 @@ class MountainGoats extends Table
 //////////// Player actions
 //////////// 
 
-    function moveGoats( $moves ) {
+    function moveGoat( $moves ) {
         // check if move is legal
 
         // move goat up each track
@@ -248,7 +252,7 @@ class MountainGoats extends Table
         // knock opponent goats down
 
         // move to next turn
-        $this->gamestate->nextState('moveGoats');
+        $this->gamestate->nextState('moveGoat');
     }
 
     function changeDie($dieIndex, $newValue) {
@@ -266,7 +270,11 @@ class MountainGoats extends Table
 
     function argPlayerTurn() {
         // return the current dice
-        $dice = array( 5, 4, 3, 6 );
+        $res = self::getCollectionFromDb("select * from dice");
+        $dice = array();
+        foreach($res as $die){
+            $dice[] = $die['value'];
+        }
         return array( 'dice' => $dice,
                       'moves' => self::legalMoves($dice) );
     }
@@ -276,10 +284,19 @@ class MountainGoats extends Table
 ////////////
 
     function stGameTurn() {
-        // check if the game is over
-        $this->gamestate->nextState('endGame');
+        // TODO: check if the game is over
+        // $this->gamestate->nextState('endGame');
 
         // roll dice
+        $die0 = bga_rand(1, 6);
+        $die1 = bga_rand(1, 6);
+        $die2 = bga_rand(1, 6);
+        $die3 = bga_rand(1, 6);
+
+        self::DbQuery("update dice set value = ".$die0." where id = 0");
+        self::DbQuery("update dice set value = ".$die1." where id = 1");
+        self::DbQuery("update dice set value = ".$die2." where id = 2");
+        self::DbQuery("update dice set value = ".$die3." where id = 3");
 
         // set next player active
         $player_id = self::activeNextPlayer();

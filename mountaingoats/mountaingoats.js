@@ -24,24 +24,21 @@ function (dojo, declare) {
     return declare("bgagame.mountaingoats", ebg.core.gamegui, {
         constructor: function(){
             console.log('mountaingoats constructor');
+        },
         
-        setup: function( gamedatas )
-        {
+        setup: function( gamedatas ){
             console.log( "Starting game setup" );
             
             // Setting up player boards
-            for( var player_id in gamedatas.players )
-            {
+            for( var player_id in gamedatas.players ){
                 var player = gamedatas.players[player_id];
                          
-                // TODO: Setting up players boards if needed
             }
-            
-            // TODO: Set up your game interface here, according to "gamedatas"
-            
  
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
+
+            dojo.query('.board_tile').connect('onclick', this, 'onMoveGoat');
 
             console.log( "Ending game setup" );
         },
@@ -53,18 +50,26 @@ function (dojo, declare) {
         // onEnteringState: this method is called each time we are entering into a new game state.
         //                  You can use this method to perform some user interface changes at this moment.
         //
-        onEnteringState: function( stateName, args )
-        {
+        onEnteringState: function( stateName, args ){
             console.log( 'Entering state: '+stateName );
             
             switch( stateName )
             {
             
            case 'playerTurn':
-                console.log(args.args.moves);
-                this.gamedatas.moves = args.args.moves.split(',');
+                this.gamedatas.moves = {};
+                for(let i in args.args.moves){
+                    this.gamedatas.moves[i] = args.args.moves[i].split(',');
+                }
                 this.gamedatas.previousMoves = [];
-                this.initialPossibleMoves(this.gamestate.moves);
+                this.initialPossibleMoves(this.gamedatas.moves);
+                for(let i in args.args.dice){
+                    dojo.destroy('die_'+i);
+                    dojo.place(this.format_block('jstpl_die', {
+                        die_number: args.args.dice[i],
+                        die_index: i
+                    }), 'dice_area');
+                }
                 break;
            
            
@@ -76,12 +81,10 @@ function (dojo, declare) {
         // onLeavingState: this method is called each time we are leaving a game state.
         //                 You can use this method to perform some user interface changes at this moment.
         //
-        onLeavingState: function( stateName )
-        {
+        onLeavingState: function( stateName ){
             console.log( 'Leaving state: '+stateName );
             
-            switch( stateName )
-            {
+            switch( stateName ){
             
            
             case 'dummmy':
@@ -92,27 +95,13 @@ function (dojo, declare) {
         // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
         //                        action status bar (ie: the HTML links in the status bar).
         //        
-        onUpdateActionButtons: function( stateName, args )
-        {
+        onUpdateActionButtons: function( stateName, args ){
             console.log( 'onUpdateActionButtons: '+stateName );
                       
-            if( this.isCurrentPlayerActive() )
-            {            
-                switch( stateName )
-                {
-/*               
-                 Example:
- 
-                 case 'myGameState':
-                    
-                    // Add 3 action buttons in the action status bar:
-                    
-                    this.addActionButton( 'button_1_id', _('Button 1 label'), 'onMyMethodToCall1' ); 
-                    this.addActionButton( 'button_2_id', _('Button 2 label'), 'onMyMethodToCall2' ); 
-                    this.addActionButton( 'button_3_id', _('Button 3 label'), 'onMyMethodToCall3' ); 
+            if( this.isCurrentPlayerActive() ){            
+                switch( stateName ){
+                case 'dummy':
                     break;
-*/
-                // TODO: Add cancel action button during movement
                 }
             }
         },        
@@ -124,40 +113,46 @@ function (dojo, declare) {
             dojo.query('.possibleMove').removeClass('possibleMove');
 
             for(var moveSet in moves){
-                for(var i in moves[moveSet]){
-                   let x = moves[moveSet][i]; 
+                for(var x of moves[moveSet]){
                    dojo.addClass('board_'+x+'_0', 'possibleMove'); 
                 }
             }
 
             this.addTooltipToClass('possibleMove', '', _('Move goat here') );
-        }
+        },
 
-        updatePossibleMoves: function(moves, moveX){
+        updatePossibleMoves: function(moveX){
             dojo.query('.possibleMove').removeClass('possibleMove');
 
+            let moves = dojo.clone(this.gamedatas.moves);
             for(var moveSet in moves){
                 var moveSet = moves[moveSet];
+                var inMove = false;
                 // remove all previous moves from the moveset
                 for(var p in this.gamedatas.previousMoves){
-                    let pi = moveSet.indexOf(this.gamedatas.previousMoves(p));
+                    let pi = moveSet.indexOf(this.gamedatas.previousMoves[p]);
                     if(pi > -1){
                         moveSet.splice(pi, 1);
+                        inMove = true;
+                    } else {
+                        inMove = false;
                     }
                 }
-                let index = moveSet.indexOf(moveX);
-                if(index > -1){
-                    moveSet.splice(index, 1);
-                    for(var i in moveSet){
-                       let x = moveSet[i]; 
-                       dojo.addClass('board_'+x+'_0', 'possibleMove'); 
+                if(inMove || this.gamedatas.previousMoves.length == 0){
+                    let index = moveSet.indexOf(moveX);
+                    if(index > -1){
+                        moveSet.splice(index, 1);
+                        for(var i in moveSet){
+                           let x = moveSet[i]; 
+                           dojo.addClass('board_'+x+'_0', 'possibleMove'); 
+                        }
                     }
                 }
             }
 
             this.addTooltipToClass('possibleMove', '', _('Move goat here') );
 
-        }
+        },
 
 
         ///////////////////////////////////////////////////
@@ -176,23 +171,29 @@ function (dojo, declare) {
                 return;
             }
             // check if move is in legal moves, and if there are any additional
-            let moves = this.gamestate.moves;
+            let moves = dojo.clone(this.gamedatas.moves);
             for(var moveSet in moves){
                 var moveSet = moves[moveSet];
+                var inMove = false;
                 // remove all previous moves from the moveset
-                for(var p in this.gamestate.previousMoves){
-                    let pi = moveSet.indexOf(this.gamedatas.previousMoves(p));
+                for(var p in this.gamedatas.previousMoves){
+                    let pi = moveSet.indexOf(this.gamedatas.previousMoves[p]);
                     if(pi > -1){
                         moveSet.splice(pi, 1);
+                        inMove = true;
+                    } else {
+                        inMove = false;
                     }
                 }
                 let index = moveSet.indexOf(x);
-                if(index > -1){
-                    moveSet.splice(index, 1);
-                    if(moveSet.length > 0){
-                        this.updatePossibleMoves(this.gamedatas.moves, x);
-                        this.gamedatas.previousMoves.push(x);
-                        return;
+                if(inMove || this.gamedatas.previousMoves.length === 0){
+                    if(index > -1){
+                        moveSet.splice(index, 1);
+                        if(moveSet.length > 0){
+                            this.updatePossibleMoves(x);
+                            this.gamedatas.previousMoves.push(x);
+                            return;
+                        }
                     }
                 }
             }
@@ -203,7 +204,7 @@ function (dojo, declare) {
                     moves:this.gamedatas.previousMoves.join(',')
                 }, this, function(result) {} );
             }
-        }
+        },
 
         onChangeDie: function(evt){
             evt.preventDefault();
@@ -217,45 +218,16 @@ function (dojo, declare) {
                     newValue:newValue
                 }, this, function(result) {} );
             }
-        }
+        },
 
 
         
         ///////////////////////////////////////////////////
         //// Reaction to cometD notifications
 
-        setupNotifications: function()
-        {
+        setupNotifications: function(){
             console.log( 'notifications subscriptions setup' );
             
-            // TODO: here, associate your game notifications with local methods
-            
-            // Example 1: standard notification handling
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            
-            // Example 2: standard notification handling + tell the user interface to wait
-            //            during 3 seconds after calling the method in order to let the players
-            //            see what is happening in the game.
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-            // 
         },  
-        
-        // TODO: from this point and below, you can write your game notifications handling methods
-        
-        /*
-        Example:
-        
-        notif_cardPlayed: function( notif )
-        {
-            console.log( 'notif_cardPlayed' );
-            console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-            
-            // TODO: play the card in the user interface.
-        },    
-        
-        */
    });             
 });
