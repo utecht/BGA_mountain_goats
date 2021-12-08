@@ -43,6 +43,7 @@
         <div id="board_9_0" class="board_tile"></div>
         <div id="board_9_1" class="board_tile"></div>
         <div id="goat_start_9" class="goat_start" style="grid-area: 4 / 5 / 5 / 6"></div>
+        <div id="change_dice_area" class="dice_area hidden" style="grid-area: 5 / 5 / 6 / 7"></div>
 
         <div id="points_10" class="point_token point_token_10" style="grid-area: 1/6/2/7"></div>
         <div id="board_10_0" class="board_tile"></div>
@@ -60,7 +61,7 @@
 jstpl_goat='<div class="goat" id="player_${owner}_goat_${goat_num}" style="background-color:#${color}"></div>';
 jstpl_point_token='<div class="point_token point_token_${token_number}" id="point_token_${token_number}_${token_id}"></div>';
 jstpl_bonus_token='<div class="bonus_token bonus_token_${bonus_number}" id="bonus_token_${bonus_number}"></div>';
-jstpl_die='<div class="die die_${die_number}" id="die_${die_index}"></div>';
+jstpl_die='<div class="die die_${die_number}" id="die_${die_index}" data-n="${die_number}"></div>';
 
 </script>  
 

@@ -53,10 +53,18 @@ function (dojo, declare) {
                 }
             }
 
+            for(let i = 1; i <= 6; i++){
+                dojo.place(this.format_block('jstpl_die', {
+                    die_number: i,
+                    die_index: 'c'+i
+                }), 'change_dice_area');
+            }
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
             dojo.query('.goat').connect('onclick', this, 'onMoveGoat');
+            dojo.query('#change_dice_area .die').connect('onclick', this, 'onChangeDie');
 
             console.log( "Ending game setup" );
         },
@@ -88,6 +96,7 @@ function (dojo, declare) {
                         die_index: i
                     }), 'dice_area');
                 }
+                dojo.query('#dice_area .die').connect('onclick', this, 'onDieClick');
                 break;
            
            
@@ -266,18 +275,27 @@ function (dojo, declare) {
             }
         },
 
+        onDieClick: function(evt){
+            if(dojo.byId(evt.currentTarget.id).dataset.n == '1' && this.isCurrentPlayerActive()){
+                dojo.toggleClass('change_dice_area', 'hidden');
+                this.changeDieId = evt.currentTarget.id.split('_')[1];
+            }
+        },
+
         onChangeDie: function(evt){
             evt.preventDefault();
             dojo.stopEvent(evt);
 
-            let dieIndex = 0;
-            let newValue = 5;
+            let dieIndex = this.changeDieId;
+            let newValue = dojo.byId(evt.currentTarget.id).dataset.n;
             if(this.checkAction('changeDie')){
                 this.ajaxcall('/mountaingoats/mountaingoats/changeDie.html', {
                     dieIndex:dieIndex,
                     newValue:newValue
                 }, this, function(result) {} );
             }
+            dojo.toggleClass('change_dice_area', 'hidden');
+            this.changeDieId = null;
         },
 
 
