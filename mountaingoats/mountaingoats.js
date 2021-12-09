@@ -84,10 +84,9 @@ function (dojo, declare) {
         onEnteringState: function( stateName, args ){
             console.log( 'Entering state: '+stateName );
             
-            switch( stateName )
-            {
+            switch( stateName ){
             
-           case 'playerTurn':
+            case 'playerTurn':
                 this.gamedatas.moves = {};
                 for(let i in args.args.moves){
                     this.gamedatas.moves[i] = args.args.moves[i].split(',');
@@ -138,12 +137,14 @@ function (dojo, declare) {
                         point_token_10: player_tokens[player_id]['point_token_10']
                     }), 'player_board_'+player_id);
 
-                    for(let token of player_tokens[player_id]){
-                        if(token.indexOf('bonus') >= 0){
-                            let bonus_num = token.split('_')[2];
-                            dojo.place(this.format_block('jstpl_bonus_token_mini', {
-                                bonus_number: bonus_num,
-                            }), 'player_bonus_tokens_'+player_id);
+                    if(player_id in player_tokens){
+                        for(let token in player_tokens[player_id]){
+                            if(token.indexOf('bonus') >= 0){
+                                let bonus_num = token.split('_')[2];
+                                dojo.place(this.format_block('jstpl_bonus_token_mini', {
+                                    bonus_number: bonus_num,
+                                }), 'player_bonus_tokens_'+player_id);
+                            }
                         }
                     }
                 }
