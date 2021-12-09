@@ -78,6 +78,8 @@
     justify-self: center;
     align-self: center;
     background-size: 300px 50px;
+    filter: drop-shadow(1px 1px 3px black);
+    will-change: transform;
 }
 
 .point_token_5 { background-position: 0px 0px; }
@@ -109,6 +111,8 @@
     height: 40px;
     background-image: url('img/bonus_tokens.png');
     background-size: 140px 80px;
+    filter: drop-shadow(1px 1px 3px black);
+    will-change: transform;
 }
 
 .bonus_token_6 { background-position: 0px 0px; }
@@ -163,7 +167,8 @@
 
 #my_play_area {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
 }
 
@@ -174,12 +179,14 @@
 .point_tokens {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
 }
 
 #bonus_tiles {
     display: flex;
-    flex-direction: column;
+    width: 720px;
+    justify-content: space-evenly;
+    margin-bottom: 5px;
 }
 
 .player_tokens {

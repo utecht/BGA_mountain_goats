@@ -11,7 +11,7 @@
 -->
 
 <div id="my_play_area">
-
+    <div id="bonus_tiles"></div>
     <div id="board">
         <div class="point_tokens" style="grid-area: 1/1/2/2"><span id="point_token_5_counter">0x</span><div id="points_5" class="point_token point_token_5"></div></div>
         <div id="board_5_0" class="board_tile"></div>
@@ -51,7 +51,6 @@
         <div id="goat_start_10" class="goat_start" style="grid-area: 4 / 6 / 5 / 7"></div>
         <div id="dice_area" class="dice_area" style="grid-area: 6 / 5 / 7 / 7"></div>
 
-        <div id="bonus_tiles" style="grid-area: 1 / 7 / 3 / 8"></div>
         
     </div>
 

@@ -53,7 +53,7 @@ function (dojo, declare) {
                 }
             }
 
-            for(let i = 1; i <= 6; i++){
+            for(let i = 2; i <= 6; i++){
                 dojo.place(this.format_block('jstpl_die', {
                     die_number: i,
                     die_index: 'c'+i
