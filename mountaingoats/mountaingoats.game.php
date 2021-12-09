@@ -270,7 +270,6 @@ class MountainGoats extends Table{
 
         $goats = self::getCollectionFromDb("select * from goat");
 
-        self::dump("======GOATS=======", $goats);
         // move goat up each track
         foreach($moves as $track){
             $goat_name = "goat_".$track;
@@ -284,11 +283,11 @@ class MountainGoats extends Table{
             if($height < 0){
                 $height = 0;
             }
+            $goats[$player_id][$goat_name] = $height;
             $score_id = self::getUniqueValueFromDB("select min(id) from token where owner is null and kind = 'point_token_".$track."'");
             if($height == 0 && $score_id != null){
                 $goats_knocked = array();
                 foreach($goats as $owner => $goat){
-                    self::dump("====GOAT=====", $goat);
                     if($owner != $player_id && $goat[$goat_name] === "0"){
                         $goats_knocked[] = $owner;
                         self::DbQuery("update goat set ".$goat_name." = NULL where owner = ".$owner);

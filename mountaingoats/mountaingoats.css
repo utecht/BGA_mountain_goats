@@ -54,11 +54,6 @@
 #board_10_0 { background-position: -600px 0px; grid-area: 2 / 6 / 3 / 7; }
 #board_10_1 { background-position: -600px -120px; grid-area: 3 / 6 / 4 / 7; }
 
-.possibleMove {
-    border: 2px blue solid;
-    cursor: pointer;
-}
-
 .die {
     height: 50px;
     width: 50px;
@@ -120,7 +115,29 @@
 .bonus_token_12 { background-position: 0px -40px; }
 .bonus_token_15 { background-position: -70px -40px; }
 
+.mini_bonus_token {
+    width: 35px;
+    height: 20px;
+    background-image: url('img/bonus_tokens.png');
+    background-size: 70px 40px;
+}
+
+.mini_bonus_token_6 { background-position: 0px 0px; }
+.mini_bonus_token_9 { background-position: -35px 0px; }
+.mini_bonus_token_12 { background-position: 0px -20px; }
+.mini_bonus_token_15 { background-position: -35px -20px; }
+
 .goat {
+    width: 40px;
+    height: 40px;
+    background-image: url('img/goat.png');
+    background-size: 40px 40px;
+    background-repeat: no-repeat;
+    filter: drop-shadow(3px 3px 5px black);
+    will-change: transform;
+}
+
+.goat_mask {
     width: 40px;
     height: 40px;
     background-blend-mode: multiply;
@@ -168,3 +185,16 @@
     display: flex;
     align-items: center;
 }
+
+.player_bonus_tokens {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.possibleMove {
+    cursor: pointer;
+    filter: drop-shadow(3px 3px 5px blue);
+    will-change: transform;
+}
+

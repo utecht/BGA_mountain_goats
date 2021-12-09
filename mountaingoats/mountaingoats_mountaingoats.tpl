@@ -60,10 +60,11 @@
 <script type="text/javascript">
 
 // Javascript HTML templates
-jstpl_goat='<div class="goat" id="player_${owner}_goat_${goat_num}" style="background-color:#${color}"></div>';
+jstpl_goat='<div class="goat" id="player_${owner}_goat_${goat_num}"><div class="goat_mask" style="background-color:#${color}"></div></div>';
 jstpl_point_token='<div class="point_token point_token_${token_number}" id="point_token_${token_number}_${token_id}"></div>';
-jstpl_player_tokens='<div id="player_tokens_${player_id}" class="player_tokens"><span>${point_token_5}</span><div class="mini_point_token mini_point_token_5"></div><span>${point_token_6}</span><div class="mini_point_token mini_point_token_6"></div><span>${point_token_7}</span><div class="mini_point_token mini_point_token_7"></div><span>${point_token_8}</span><div class="mini_point_token mini_point_token_8"></div><span>${point_token_9}</span><div class="mini_point_token mini_point_token_9"></div><span>${point_token_10}</span><div class="mini_point_token mini_point_token_10"></div></div>';
+jstpl_player_tokens='<div id="player_tokens_${player_id}" class="player_tokens"><span>${point_token_5}</span><div class="mini_point_token mini_point_token_5"></div><span>${point_token_6}</span><div class="mini_point_token mini_point_token_6"></div><span>${point_token_7}</span><div class="mini_point_token mini_point_token_7"></div><span>${point_token_8}</span><div class="mini_point_token mini_point_token_8"></div><span>${point_token_9}</span><div class="mini_point_token mini_point_token_9"></div><span>${point_token_10}</span><div class="mini_point_token mini_point_token_10"></div></div><div id="player_bonus_tokens_${player_id}" class="player_bonus_tokens"></div>';
 jstpl_bonus_token='<div class="bonus_token bonus_token_${bonus_number}" id="bonus_token_${bonus_number}"></div>';
+jstpl_bonus_token_mini='<div class="bonus_token bonus_token_${bonus_number}"></div>';
 jstpl_die='<div class="die die_${die_number}" id="die_${die_index}" data-n="${die_number}"></div>';
 
 </script>  
