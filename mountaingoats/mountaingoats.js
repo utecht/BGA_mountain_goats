@@ -101,11 +101,13 @@ function (dojo, declare) {
                         die_index: i
                     }), 'dice_area');
                 }
+                dojo.query('.bonus_token').addClass('hidden');
+                for(let i  = 5; i <= 10; i++){
+                    dojo.byId('point_token_'+i+'_counter').innerHTML = '0x';
+                }
                 for(let token of args.args.tokens){
                     if(token.kind.indexOf('bonus') > -1){
-                        if(token.count == 0){
-                            dojo.addClass(token.kind, 'hidden');
-                        }
+                        dojo.removeClass(token.kind, 'hidden');
                     } else {
                         dojo.byId(token.kind+'_counter').innerHTML = token.count + 'x';
                     }
@@ -351,13 +353,15 @@ function (dojo, declare) {
         setupNotifications: function(){
             console.log( 'notifications subscriptions setup' );
             dojo.subscribe( 'changeDie', this, 'notif_changeDie' );
-            this.notifqueue.setSynchronous( 'changeDie', 500 );
+            this.notifqueue.setSynchronous( 'changeDie', 50 );
             dojo.subscribe( 'moveGoat', this, 'notif_moveGoat' );
-            this.notifqueue.setSynchronous( 'moveGoat', 500 );
+            this.notifqueue.setSynchronous( 'moveGoat', 50 );
             dojo.subscribe( 'moveGoatScore', this, 'notif_moveGoatScore' );
-            this.notifqueue.setSynchronous( 'moveGoatScore', 500 );
+            this.notifqueue.setSynchronous( 'moveGoatScore', 50 );
             dojo.subscribe( 'moveGoatKnockOff', this, 'notif_moveGoatKnockOff' );
-            this.notifqueue.setSynchronous( 'moveGoatKnockOff', 500 );
+            this.notifqueue.setSynchronous( 'moveGoatKnockOff', 50 );
+            dojo.subscribe( 'scoreBonus', this, 'notif_scoreBonus' );
+            this.notifqueue.setSynchronous( 'scoreBonus', 50 );
         },  
 
         notif_changeDie: function(args){
@@ -381,8 +385,8 @@ function (dojo, declare) {
 
         notif_moveGoatKnockOff: function(args){
             this.slideGoat(args.args.player_id, args.args.goat_num, 0);
-            for(let goat of args.args.goats_off){
-                this.slideGoat(goat.owner, args.args.goat_num, null);
+            for(let owner of args.args.goats_off){
+                this.slideGoat(owner, args.args.goat_num, null);
             }
             this.scoreCtrl[args.args.player_id].incValue(args.args.goat_num);
         },

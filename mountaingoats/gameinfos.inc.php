@@ -101,7 +101,7 @@ $gameinfos = array(
 
 // Colors attributed to players
 // Grey, Yellow, Red, Black
-'player_colors' => array( "D6D6D6", "FFF156", "EE230D", "000000"),
+'player_colors' => array( "b4b0b0", "d9cd4b", "EE230D", "000000"),
 
 // Favorite colors support : if set to "true", support attribution of favorite colors based on player's preferences (see reattributeColorsBasedOnPreferences PHP method)
 // NB: this parameter is used only to flag games supporting this feature; you must use (or not use) reattributeColorsBasedOnPreferences PHP method to actually enable or disable the feature.

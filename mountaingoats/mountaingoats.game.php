@@ -270,21 +270,26 @@ class MountainGoats extends Table{
 
         $goats = self::getCollectionFromDb("select * from goat");
 
+        self::dump("======GOATS=======", $goats);
         // move goat up each track
         foreach($moves as $track){
             $goat_name = "goat_".$track;
 
-            if($goats[$player_id][$goat_name] === null){
-                $goats[$player_id][$goat_name] = $this->starting_height[$track];
-            } else {
-                $goats[$player_id][$goat_name] -= 1;
-            }
             $height = $goats[$player_id][$goat_name];
+            if($height === null){
+                $height = $this->starting_height[$track];
+            } else {
+                $height = intVal($height) - 1;
+            }
+            if($height < 0){
+                $height = 0;
+            }
             $score_id = self::getUniqueValueFromDB("select min(id) from token where owner is null and kind = 'point_token_".$track."'");
             if($height == 0 && $score_id != null){
                 $goats_knocked = array();
                 foreach($goats as $owner => $goat){
-                    if($owner != $player_id && $goat[$goat_name] == 0){
+                    self::dump("====GOAT=====", $goat);
+                    if($owner != $player_id && $goat[$goat_name] === "0"){
                         $goats_knocked[] = $owner;
                         self::DbQuery("update goat set ".$goat_name." = NULL where owner = ".$owner);
                     }
@@ -312,17 +317,6 @@ class MountainGoats extends Table{
                         )
                     );
                 }
-            } else if($height < 0 && $score_id != null){
-                $height = 0;
-                self::notifyAllPlayers(
-                    "moveGoatScore",
-                    clienttranslate('${player_name} moved goat ${goat_num}, scoring ${goat_num}.'),
-                    array(
-                        'player_name' => $player_name,
-                        'player_id' => $player_id,
-                        'goat_num' => $track
-                    )
-                );
             } else {
                 self::notifyAllPlayers(
                     "moveGoat",
@@ -335,48 +329,52 @@ class MountainGoats extends Table{
                     )
                 );
             }
-            if($score_id !== null){
+            if($score_id !== null && $height === 0){
                 self::DbQuery("update token set owner = '".$player_id."' where id = ".$score_id);
                 self::DbQuery("update player set player_score = player_score + ".$track." where player_id = ".$player_id);
             }
             self::DbQuery("update goat set ".$goat_name." = ".$height." where owner = ".$player_id);
         }
 
-        $tokens = self::getCollectionFromDb("select kind, count(*) as count from token where owner = ".$player_id." group by kind");
+        $tokens = self::getCollectionFromDb("select kind, count(*) as count from token where owner = '".$player_id."' group by kind");
         $bonus_count = 0;
         $token_count = 0;
         $low_seen = 99;
         foreach($tokens as $kind => $token){
-            $count = $token['count'];
-            if(strpos('bonus', $kind)){
-                $bonus_count++;
-            } else {
+            $count = intVal($token['count']);
+            if(strpos($kind, 'bonus') === false){
                 $token_count++;
                 if($count < $low_seen){
                     $low_seen = $count;
                 }
+            } else {
+                $bonus_count++;
             }
         }
         if($token_count == 6 && $low_seen > $bonus_count){
-            $bonus_tile = self::getObectFromDb("select * from token where owner is null and kind like 'bonus%' order by id desc");
-            $score = explode('_', $bonus_tile['kind'])[2];
-            if($bonus_tile){
-                self::DbQuery("update token set owner = '".$player_id."' where id = ".$bonus_tile['id']);
-                self::DbQuery("update player set player_score = player_score + ".$score." where player_id = ".$player_id);
-                self::notifyAllPlayers(
-                    "scoreBonus",
-                    clienttranslate('${player_name} completed a set and scored ${bonus_num} bonus.'),
-                    array(
-                        'player_name' => $player_name,
-                        'player_id' => $player_id,
-                        'bonus_num' => $score
-                    )
-                );
+            while($low_seen > $bonus_count){
+                $bonus_tile = self::getObjectFromDB("select * from token where owner is null and kind like 'bonus%' order by id limit 1");
+                $score = explode('_', $bonus_tile['kind'])[2];
+                if($bonus_tile){
+                    self::DbQuery("update token set owner = '".$player_id."' where id = ".$bonus_tile['id']);
+                    self::DbQuery("update player set player_score = player_score + ".$score." where player_id = ".$player_id);
+                    self::notifyAllPlayers(
+                        "scoreBonus",
+                        clienttranslate('${player_name} completed a set and scored ${bonus_num} bonus.'),
+                        array(
+                            'player_name' => $player_name,
+                            'player_id' => $player_id,
+                            'bonus_num' => $score
+                        )
+                    );
+                }
+                $bonus_count++;
             }
-
         }
 
         // move to next turn
+        self::incStat(1, 'turns_number', $player_id);
+        self::incStat(1, 'turns_number');
         $this->gamestate->nextState('moveGoat');
     }
 
@@ -391,8 +389,8 @@ class MountainGoats extends Table{
                 $one_count++;
             }
         }
-        if($one_count < 3){
-           throw new BgaUserException(self::_("Can only change dice when there are 3 1s."));
+        if($one_count < 2){
+           throw new BgaUserException(self::_("Can only change dice when there is more than 1 1die."));
         }
 
         self::DbQuery("update dice set value = ".$newValue." where id = ".$dieIndex);
@@ -437,7 +435,7 @@ class MountainGoats extends Table{
         // TODO: check if the game is over
         $point_token_count = count(self::getObjectListFromDb("select kind, count(*) from token where owner is null and kind not like 'bonus%' group by kind"));
         $bonus_token_count = count(self::getObjectListFromDb("select kind, count(*) from token where owner is null and kind like 'bonus%' group by kind"));
-        if($bonus_token_count == 0 || $point_token_count < 4){
+        if($bonus_token_count == 0 || $point_token_count <= 3){
             $this->gamestate->nextState('endGame');
             return;
         }
