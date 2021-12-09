@@ -26,7 +26,7 @@
 
 #board {
     display: grid;
-    grid: repeat(6, auto) / repeat(6, auto);
+    grid: repeat(7, auto) / repeat(6, auto);
     width: 720px;
 }
 
@@ -91,26 +91,45 @@
 .point_token_9 { background-position: -200px 0px; }
 .point_token_10 { background-position: -250px 0px; }
 
+.mini_point_token {
+    height: 20px;
+    width: 20px;
+    background-image: url('img/point_tokens.png');
+    background-repeat: no-repeat;
+    justify-self: center;
+    align-self: center;
+    background-size: 120px 20px;
+}
+
+.mini_point_token_5 { background-position: 0px 0px; }
+.mini_point_token_6 { background-position: -20px 0px; }
+.mini_point_token_7 { background-position: -40px 0px; }
+.mini_point_token_8 { background-position: -60px 0px; }
+.mini_point_token_9 { background-position: -80px 0px; }
+.mini_point_token_10 { background-position: -100px 0px; }
+
 .bonus_token {
-    width: 200px;
-    height: 125px;
-    position: absolute;
+    width: 70px;
+    height: 40px;
     background-image: url('img/bonus_tokens.png');
+    background-size: 140px 80px;
 }
 
 .bonus_token_6 { background-position: 0px 0px; }
-.bonus_token_9 { background-position: -200px 0px; }
-.bonus_token_12 { background-position: 0px -125px; }
-.bonus_token_15 { background-position: -200px -125px; }
+.bonus_token_9 { background-position: -70px 0px; }
+.bonus_token_12 { background-position: 0px -40px; }
+.bonus_token_15 { background-position: -70px -40px; }
 
 .goat {
     width: 40px;
     height: 40px;
     background-blend-mode: multiply;
     mask: url('img/goat.png');
-    -webkit-mask: url('img/goat.png');
     mask-size: 40px 40px;
     mask-repeat: no-repeat;
+    -webkit-mask: url('img/goat.png');
+    -webkit-mask-size: 40px 40px;
+    -webkit-mask-repeat: no-repeat;
 }
 
 .goat_start {
@@ -134,3 +153,18 @@
     display: none;
 }
 
+.point_tokens {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#bonus_tiles {
+    display: flex;
+    flex-direction: column;
+}
+
+.player_tokens {
+    display: flex;
+    align-items: center;
+}

@@ -41,5 +41,13 @@ $this->point_tokens = array(
     array('id' => 10, 'count' => 7)
 );
 
+$this->starting_height = array(
+    5 => 3,
+    6 => 3,
+    7 => 2,
+    8 => 2,
+    9 => 1,
+    10 => 1
+);
 
 

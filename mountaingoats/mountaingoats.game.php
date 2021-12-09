@@ -242,14 +242,139 @@ class MountainGoats extends Table{
 //////////// Player actions
 //////////// 
 
-    function moveGoat( $moves ) {
+    function moveGoat( $move_string ) {
+        self::checkAction("moveGoat");
+        $player_name = self::getActivePlayerName();
+        $player_id = self::getActivePlayerId();
+        $moves = explode(',', $move_string);
+
+        $res = self::getCollectionFromDb("select * from dice");
+        $dice = array();
+        foreach($res as $die){
+            $dice[] = $die['value'];
+        }
+
         // check if move is legal
+        $legal_moves = self::legalMoves($dice);
+        $valid = false;
+        foreach($legal_moves as $move_index => $move){
+            $count = count(array_diff($moves, explode(',', $move)));
+            if($count == 0){
+                $valid = true;
+            }
+        }
+        if($valid === false){
+            // say move is not valid
+           throw new BgaVisibleSystemException(self::_("Invalid move submitted, reload."));
+        }
+
+        $goats = self::getCollectionFromDb("select * from goat");
 
         // move goat up each track
+        foreach($moves as $track){
+            $goat_name = "goat_".$track;
 
-        // award point tokens
+            if($goats[$player_id][$goat_name] === null){
+                $goats[$player_id][$goat_name] = $this->starting_height[$track];
+            } else {
+                $goats[$player_id][$goat_name] -= 1;
+            }
+            $height = $goats[$player_id][$goat_name];
+            $score_id = self::getUniqueValueFromDB("select min(id) from token where owner is null and kind = 'point_token_".$track."'");
+            if($height == 0 && $score_id != null){
+                $goats_knocked = array();
+                foreach($goats as $owner => $goat){
+                    if($owner != $player_id && $goat[$goat_name] == 0){
+                        $goats_knocked[] = $owner;
+                        self::DbQuery("update goat set ".$goat_name." = NULL where owner = ".$owner);
+                    }
+                }
+                if(count($goats_knocked) > 0){
+                    self::notifyAllPlayers(
+                        "moveGoatKnockOff",
+                        clienttranslate('${player_name} moved goat ${goat_num}, scoring ${goat_num} and knocking off ${goat_count} other goats.'),
+                        array(
+                            'player_name' => $player_name,
+                            'player_id' => $player_id,
+                            'goat_num' => $track,
+                            'goat_count' => count($goats_knocked),
+                            'goats_off' => $goats_knocked
+                        )
+                    );
+                } else {
+                    self::notifyAllPlayers(
+                        "moveGoatScore",
+                        clienttranslate('${player_name} moved goat ${goat_num}, scoring ${goat_num}.'),
+                        array(
+                            'player_name' => $player_name,
+                            'player_id' => $player_id,
+                            'goat_num' => $track
+                        )
+                    );
+                }
+            } else if($height < 0 && $score_id != null){
+                $height = 0;
+                self::notifyAllPlayers(
+                    "moveGoatScore",
+                    clienttranslate('${player_name} moved goat ${goat_num}, scoring ${goat_num}.'),
+                    array(
+                        'player_name' => $player_name,
+                        'player_id' => $player_id,
+                        'goat_num' => $track
+                    )
+                );
+            } else {
+                self::notifyAllPlayers(
+                    "moveGoat",
+                    clienttranslate('${player_name} moved goat ${goat_num}.'),
+                    array(
+                        'player_name' => $player_name,
+                        'player_id' => $player_id,
+                        'goat_num' => $track,
+                        'height' => $height
+                    )
+                );
+            }
+            if($score_id !== null){
+                self::DbQuery("update token set owner = '".$player_id."' where id = ".$score_id);
+                self::DbQuery("update player set player_score = player_score + ".$track." where player_id = ".$player_id);
+            }
+            self::DbQuery("update goat set ".$goat_name." = ".$height." where owner = ".$player_id);
+        }
 
-        // knock opponent goats down
+        $tokens = self::getCollectionFromDb("select kind, count(*) as count from token where owner = ".$player_id." group by kind");
+        $bonus_count = 0;
+        $token_count = 0;
+        $low_seen = 99;
+        foreach($tokens as $kind => $token){
+            $count = $token['count'];
+            if(strpos('bonus', $kind)){
+                $bonus_count++;
+            } else {
+                $token_count++;
+                if($count < $low_seen){
+                    $low_seen = $count;
+                }
+            }
+        }
+        if($token_count == 6 && $low_seen > $bonus_count){
+            $bonus_tile = self::getObectFromDb("select * from token where owner is null and kind like 'bonus%' order by id desc");
+            $score = explode('_', $bonus_tile['kind'])[2];
+            if($bonus_tile){
+                self::DbQuery("update token set owner = '".$player_id."' where id = ".$bonus_tile['id']);
+                self::DbQuery("update player set player_score = player_score + ".$score." where player_id = ".$player_id);
+                self::notifyAllPlayers(
+                    "scoreBonus",
+                    clienttranslate('${player_name} completed a set and scored ${bonus_num} bonus.'),
+                    array(
+                        'player_name' => $player_name,
+                        'player_id' => $player_id,
+                        'bonus_num' => $score
+                    )
+                );
+            }
+
+        }
 
         // move to next turn
         $this->gamestate->nextState('moveGoat');
@@ -257,8 +382,29 @@ class MountainGoats extends Table{
 
     function changeDie($dieIndex, $newValue) {
         // check if dice were legally changed
+        self::checkAction("changeDie");
+        $player_name = self::getActivePlayerName();
+        $dice = self::getCollectionFromDb("select * from dice");
+        $one_count = 0;
+        foreach($dice as $index=>$die){
+            if($die['value'] == 1){
+                $one_count++;
+            }
+        }
+        if($one_count < 3){
+           throw new BgaUserException(self::_("Can only change dice when there are 3 1s."));
+        }
 
-        // change dice
+        self::DbQuery("update dice set value = ".$newValue." where id = ".$dieIndex);
+        self::notifyAllPlayers(
+            "changeDie",
+            clienttranslate('${player_name} changed die to ${die_value}'),
+            array(
+                'player_name' => $player_name,
+                'die_index' => $dieIndex,
+                'die_value' => $newValue
+            )
+        );
 
         $this->gamestate->nextState('changeDie');
     }
@@ -272,10 +418,14 @@ class MountainGoats extends Table{
         // return the current dice
         $res = self::getCollectionFromDb("select * from dice");
         $dice = array();
+        $tokens = self::getObjectListFromDb("select kind, count(*) as count from token where owner is null group by kind");
+        $player_tokens = self::getObjectListFromDb("select owner, kind, count(*) as count from token where owner is not null group by owner, kind");
         foreach($res as $die){
             $dice[] = $die['value'];
         }
         return array( 'dice' => $dice,
+                      'tokens' => $tokens,
+                      'player_tokens' => $player_tokens,
                       'moves' => self::legalMoves($dice) );
     }
 
@@ -285,7 +435,12 @@ class MountainGoats extends Table{
 
     function stGameTurn() {
         // TODO: check if the game is over
-        // $this->gamestate->nextState('endGame');
+        $point_token_count = count(self::getObjectListFromDb("select kind, count(*) from token where owner is null and kind not like 'bonus%' group by kind"));
+        $bonus_token_count = count(self::getObjectListFromDb("select kind, count(*) from token where owner is null and kind like 'bonus%' group by kind"));
+        if($bonus_token_count == 0 || $point_token_count < 4){
+            $this->gamestate->nextState('endGame');
+            return;
+        }
 
         // roll dice
         $die0 = bga_rand(1, 6);
@@ -299,7 +454,7 @@ class MountainGoats extends Table{
         self::DbQuery("update dice set value = ".$die3." where id = 3");
 
         // set next player active
-        $player_id = self::activeNextPlayer();
+        self::activeNextPlayer();
         $this->gamestate->nextState('nextPlayer');
 
     }

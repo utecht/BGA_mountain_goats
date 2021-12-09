@@ -60,6 +60,11 @@ function (dojo, declare) {
                 }), 'change_dice_area');
             }
 
+            dojo.place(this.format_block('jstpl_bonus_token', { bonus_number: 15 }), 'bonus_tiles');
+            dojo.place(this.format_block('jstpl_bonus_token', { bonus_number: 12 }), 'bonus_tiles');
+            dojo.place(this.format_block('jstpl_bonus_token', { bonus_number: 9 }), 'bonus_tiles');
+            dojo.place(this.format_block('jstpl_bonus_token', { bonus_number: 6 }), 'bonus_tiles');
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -95,6 +100,40 @@ function (dojo, declare) {
                         die_number: args.args.dice[i],
                         die_index: i
                     }), 'dice_area');
+                }
+                for(let token of args.args.tokens){
+                    if(token.kind.indexOf('bonus') > -1){
+                        if(token.count == 0){
+                            dojo.addClass(token.kind, 'hidden');
+                        }
+                    } else {
+                        dojo.byId(token.kind+'_counter').innerHTML = token.count + 'x';
+                    }
+                }
+                player_tokens = {};
+                for(let player_token of args.args.player_tokens){
+                    if(player_tokens.hasOwnProperty(player_token.owner) === false){
+                        player_tokens[player_token.owner] = {'point_token_5': 0,
+                                                             'point_token_6': 0,
+                                                             'point_token_7': 0,
+                                                             'point_token_8': 0,
+                                                             'point_token_9': 0,
+                                                             'point_token_10': 0};
+                    }
+                    player_tokens[player_token.owner][player_token.kind] += parseInt(player_token.count);
+                }
+                for(let player_id in player_tokens){
+                    dojo.destroy('player_tokens_'+player_id);
+                    dojo.place(this.format_block('jstpl_player_tokens', {
+                        player_id: player_id,
+                        point_token_5: player_tokens[player_id]['point_token_5'],
+                        point_token_6: player_tokens[player_id]['point_token_6'],
+                        point_token_7: player_tokens[player_id]['point_token_7'],
+                        point_token_8: player_tokens[player_id]['point_token_8'],
+                        point_token_9: player_tokens[player_id]['point_token_9'],
+                        point_token_10: player_tokens[player_id]['point_token_10']
+                    }), 'player_board_'+player_id);
+
                 }
                 dojo.query('#dice_area .die').connect('onclick', this, 'onDieClick');
                 break;
@@ -177,13 +216,17 @@ function (dojo, declare) {
                     this.goat[goat_name]--;
                 }
             }
-            this.slideGoat(this.goat, goat_num);
+            this.slideGoat(this.player_id, goat_num, this.goat[goat_name]);
         },
 
-        slideGoat: function(goat, goat_num){
+        slideGoat: function(player_id, goat_num, height){
             let goat_name = 'goat_'+goat_num;
-            this.attachToNewParent('player_'+goat.owner+'_goat_'+goat_num, 'board_'+goat_num+'_'+goat[goat_name]);
-            dojo.query('#player_'+goat.owner+'_goat_'+goat_num).connect('onclick', this, 'onMoveGoat');
+            if(height === null){
+                this.attachToNewParent('player_'+player_id+'_goat_'+goat_num, 'goat_start_'+goat_num);
+            } else {
+                this.attachToNewParent('player_'+player_id+'_goat_'+goat_num, 'board_'+goat_num+'_'+height);
+            }
+            dojo.query('#player_'+player_id+'_goat_'+goat_num).connect('onclick', this, 'onMoveGoat');
             //this.placeOnObject('player_'+goat.owner+'_goat_'+goat_num, 'board_'+goat_num+'_'+goat[goat_name]);
             //this.slideToObject('player_'+goat.owner+'_goat_'+goat_num, 'board_'+goat_num+'_'+goat[goat_name]).play();
         },
@@ -270,6 +313,7 @@ function (dojo, declare) {
             this.moveOwnGoat(x);
             if(this.checkAction('moveGoat')){
                 this.ajaxcall('/mountaingoats/mountaingoats/moveGoat.html', {
+                    lock: true,
                     moves:this.gamedatas.previousMoves.join(',')
                 }, this, function(result) {} );
             }
@@ -290,6 +334,7 @@ function (dojo, declare) {
             let newValue = dojo.byId(evt.currentTarget.id).dataset.n;
             if(this.checkAction('changeDie')){
                 this.ajaxcall('/mountaingoats/mountaingoats/changeDie.html', {
+                    lock: true,
                     dieIndex:dieIndex,
                     newValue:newValue
                 }, this, function(result) {} );
@@ -305,7 +350,41 @@ function (dojo, declare) {
 
         setupNotifications: function(){
             console.log( 'notifications subscriptions setup' );
-            
+            dojo.subscribe( 'changeDie', this, 'notif_changeDie' );
+            this.notifqueue.setSynchronous( 'changeDie', 500 );
+            dojo.subscribe( 'moveGoat', this, 'notif_moveGoat' );
+            this.notifqueue.setSynchronous( 'moveGoat', 500 );
+            dojo.subscribe( 'moveGoatScore', this, 'notif_moveGoatScore' );
+            this.notifqueue.setSynchronous( 'moveGoatScore', 500 );
+            dojo.subscribe( 'moveGoatKnockOff', this, 'notif_moveGoatKnockOff' );
+            this.notifqueue.setSynchronous( 'moveGoatKnockOff', 500 );
         },  
+
+        notif_changeDie: function(args){
+            let die_id = 'die_'+args.args.die_index;
+            dojo.removeClass(die_id);
+            dojo.addClass(die_id, 'die die_'+args.args.die_value);
+        },
+
+        notif_moveGoat: function(args){
+            this.slideGoat(args.args.player_id, args.args.goat_num, args.args.height);
+        },
+
+        notif_moveGoatScore: function(args){
+            this.slideGoat(args.args.player_id, args.args.goat_num, 0);
+            this.scoreCtrl[args.args.player_id].incValue(args.args.goat_num);
+        },
+
+        notif_scoreBonus: function(args){
+            this.scoreCtrl[args.args.player_id].incValue(args.args.bonus_num);
+        },
+
+        notif_moveGoatKnockOff: function(args){
+            this.slideGoat(args.args.player_id, args.args.goat_num, 0);
+            for(let goat of args.args.goats_off){
+                this.slideGoat(goat.owner, args.args.goat_num, null);
+            }
+            this.scoreCtrl[args.args.player_id].incValue(args.args.goat_num);
+        },
    });             
 });
